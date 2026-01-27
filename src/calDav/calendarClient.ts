@@ -35,13 +35,20 @@ const getAuthenticatedClient = () => {
       throw error;
     }
   })();
+  return clientPromise;
 };
 
 const getPrimaryCalendar = async () => {
   // TODO: use getAuthenticatedClient to get the client
+  const client = await getAuthenticatedClient();
   // fetch the calendars for the user
+  const calendars = await client.fetchCalendars();
   // if no calendars found, throw an error
+  if (calendars.length === 0) {
+    throw new Error('No calendars found');
+  }
   // return the client and the first calendar found
+  return { client, calendar: calendars[0] };
 };
 
 const createEvent = async (eventData: Omit<ICalInput, 'uid' | 'domain'>) => {
