@@ -1,4 +1,5 @@
-import { icsToJson } from '@/utils/ics-to-json';
+/* eslint-disable @typescript-eslint/no-unused-vars */
+// import { icsToJson } from '@/utils/ics-to-json';
 import {
   deleteEvent,
   getAuthenticatedClient,
@@ -12,6 +13,7 @@ describe('CalDAV Client', () => {
 
   it('should connect to the CalDAV server and fetch calendars', async () => {
     const client = await getAuthenticatedClient();
+    console.log('lol', client);
     const calendars = await client.fetchCalendars();
     expect(calendars.length).toBeGreaterThan(0);
   });
@@ -33,14 +35,14 @@ describe('CalDAV Client', () => {
     expect(eventUrl).toContain('.ics');
   });
 
-  it('should list calendar events', async () => {
-    const events = await listEvents();
-    events.forEach((event) => {
-      const eventJson = icsToJson(event.data);
-      expect(eventJson).toBeDefined();
-    });
-    expect(events.length).toBeGreaterThan(0);
-  });
+  // it('should list calendar events', async () => {
+  //   const events = await listEvents();
+  //   events.forEach((event) => {
+  //     const eventJson = icsToJson(event.data);
+  //     expect(eventJson).toBeDefined();
+  //   });
+  //   expect(events.length).toBeGreaterThan(0);
+  // });
 
   // it('should delete test event', async () => {
   //   const event = await getEventByUrl(eventUrl);

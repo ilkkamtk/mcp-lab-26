@@ -10,24 +10,20 @@ const CALDAV_PASSWORD = process.env.CALDAV_PASSWORD ?? 'password';
 let clientPromise: Promise<DAVClient> | null = null;
 
 const getAuthenticatedClient = () => {
-  // If a login is already in progress or finished, return that same promise
   if (clientPromise) return clientPromise;
 
-  // TODO: create clientPromise, it is an IIFE that creates
-  // and logs in the client and returns the client, on error it resets clientPromise to null
-  // see https://tsdav.vercel.app/docs/intro#basic-usage for reference
   clientPromise = (async () => {
-    const client = new DAVClient({
-      serverUrl: CALDAV_SERVER_URL,
-      credentials: {
-        username: CALDAV_USERNAME,
-        password: CALDAV_PASSWORD,
-      },
-      authMethod: 'Basic',
-      defaultAccountType: 'caldav',
-    });
-
     try {
+      const client = new DAVClient({
+        serverUrl: CALDAV_SERVER_URL,
+        credentials: {
+          username: CALDAV_USERNAME,
+          password: CALDAV_PASSWORD,
+        },
+        authMethod: 'Basic',
+        defaultAccountType: 'caldav',
+      });
+
       await client.login();
       return client;
     } catch (error) {
@@ -39,23 +35,27 @@ const getAuthenticatedClient = () => {
 };
 
 const getPrimaryCalendar = async () => {
-  // TODO: use getAuthenticatedClient to get the client
   const client = await getAuthenticatedClient();
-  // fetch the calendars for the user
   const calendars = await client.fetchCalendars();
-  // if no calendars found, throw an error
   if (calendars.length === 0) {
     throw new Error('No calendars found');
   }
-  // return the client and the first calendar found
   return { client, calendar: calendars[0] };
 };
 
 const createEvent = async (eventData: Omit<ICalInput, 'uid' | 'domain'>) => {
   // TODO: use getPrimaryCalendar to get the client and calendar
+  const { client, calendar } = await getPrimaryCalendar();
   // generate the iCal string using generateICal
+  const iCalString = generateICal(eventData);
   // create the calendar object using client.createCalendarObject
+  const response = await client.createCalendarObject({
+    calendar,
+    filename: `${Date.now()}.ics`,
+    iCalString,
+  });
   // return the URL of the created event
+  return response.url;
 };
 
 const getEventByUrl = async (eventUrl: string) => {
