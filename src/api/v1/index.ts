@@ -7,7 +7,7 @@ const router = express.Router();
 
 router.get('/', (req: Request, res: Response) => {
   res.json({
-    message: 'media api v1',
+    message: 'MCP api v1',
   });
 });
 

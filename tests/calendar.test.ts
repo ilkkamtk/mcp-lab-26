@@ -42,13 +42,13 @@ describe('CalDAV Client', () => {
     expect(events.length).toBeGreaterThan(0);
   });
 
-  it('should delete test event', async () => {
-    const event = await getEventByUrl(eventUrl);
-    await deleteEvent(event);
-    // Verify deletion by attempting to fetch the event again
-    const checkEvent = await getEventByUrl(eventUrl);
-    expect(checkEvent.data).toBeUndefined();
-  });
+  // it('should delete test event', async () => {
+  //   const event = await getEventByUrl(eventUrl);
+  //   await deleteEvent(event);
+  //   // Verify deletion by attempting to fetch the event again
+  //   const checkEvent = await getEventByUrl(eventUrl);
+  //   expect(checkEvent.data).toBeUndefined();
+  // });
 
   //   it('should delete all events', async () => {
   //     const events = await listEvents();

@@ -16,6 +16,25 @@ const getAuthenticatedClient = () => {
   // TODO: create clientPromise, it is an IIFE that creates
   // and logs in the client and returns the client, on error it resets clientPromise to null
   // see https://tsdav.vercel.app/docs/intro#basic-usage for reference
+  clientPromise = (async () => {
+    const client = new DAVClient({
+      serverUrl: CALDAV_SERVER_URL,
+      credentials: {
+        username: CALDAV_USERNAME,
+        password: CALDAV_PASSWORD,
+      },
+      authMethod: 'Basic',
+      defaultAccountType: 'caldav',
+    });
+
+    try {
+      await client.login();
+      return client;
+    } catch (error) {
+      clientPromise = null; // varmista, että epäonnistunut yritys nollataan
+      throw error;
+    }
+  })();
 };
 
 const getPrimaryCalendar = async () => {
