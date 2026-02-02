@@ -47,6 +47,7 @@ mcpServer.registerTool(
       ? new Date(end)
       : new Date(new Date(start).getTime() + 60 * 60 * 1000);
     try {
+      console.log('ajat', start);
       const eventUrl = await createEvent({
         start: new Date(start),
         end: eventEnd,
