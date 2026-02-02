@@ -46,6 +46,7 @@ const getPrimaryCalendar = async () => {
 const createEvent = async (eventData: Omit<ICalInput, 'uid' | 'domain'>) => {
   const { client, calendar } = await getPrimaryCalendar();
   const iCalString = generateICal(eventData);
+  console.log('ical', iCalString);
   const response = await client.createCalendarObject({
     calendar,
     filename: `${Date.now()}.ics`,

@@ -52,12 +52,12 @@ describe('CalDAV Client', () => {
     expect(checkEvent.data).toBeUndefined();
   });
 
-  // it('should delete all events', async () => {
-  //   const events = await listEvents();
-  //   for (const event of events) {
-  //     await deleteEvent(event);
-  //   }
-  //   const remainingEvents = await listEvents();
-  //   expect(remainingEvents.length).toBe(0);
-  // });
+  it('should delete all events', async () => {
+    const events = await listEvents();
+    for (const event of events) {
+      await deleteEvent(event);
+    }
+    const remainingEvents = await listEvents();
+    expect(remainingEvents.length).toBe(0);
+  });
 });

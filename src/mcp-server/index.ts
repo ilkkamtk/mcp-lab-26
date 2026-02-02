@@ -1,5 +1,9 @@
 import { z } from 'zod';
-import { createEvent, getEventByUrl } from '@/calDav/calendarClient';
+import {
+  createEvent,
+  getEventByUrl,
+  listEvents,
+} from '@/calDav/calendarClient';
 import { icsToJson } from '@/utils/ics-to-json';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 
@@ -71,6 +75,43 @@ mcpServer.registerTool(
           {
             type: 'text',
             text: `Failed to create event: ${(error as Error).message}`,
+          },
+        ],
+      };
+    }
+  },
+);
+
+mcpServer.registerTool(
+  'listEvents',
+  {
+    title: 'List Calendar Events',
+    description:
+      'Lists all events from CalDav calendar. Returns parsed event data including title, start/end times, location, and description as JSON. Example: [{"summary":"Meeting","startDate":"2024-10-01T10:00:00Z","endDate":"2024-10-01T11:00:00Z","location":"Office","description":"Discuss project status."}]',
+    inputSchema: z.object({}),
+  },
+  async () => {
+    try {
+      const rawEvents = await listEvents();
+      const parsedEvents = rawEvents.map((event) => icsToJson(event.data));
+
+      console.log('Eventit:', parsedEvents);
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `Events retrieved successfully: ${JSON.stringify(parsedEvents)}`,
+          },
+        ],
+      };
+    } catch (error) {
+      console.error('Error listing events:', error);
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `Failed to list events: ${(error as Error).message}`,
           },
         ],
       };
