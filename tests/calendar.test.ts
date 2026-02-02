@@ -1,5 +1,5 @@
+import { icsToJson } from './../src/utils/ics-to-json';
 /* eslint-disable @typescript-eslint/no-unused-vars */
-// import { icsToJson } from '@/utils/ics-to-json';
 import {
   deleteEvent,
   getAuthenticatedClient,
@@ -13,7 +13,6 @@ describe('CalDAV Client', () => {
 
   it('should connect to the CalDAV server and fetch calendars', async () => {
     const client = await getAuthenticatedClient();
-    console.log('lol', client);
     const calendars = await client.fetchCalendars();
     expect(calendars.length).toBeGreaterThan(0);
   });
@@ -35,29 +34,30 @@ describe('CalDAV Client', () => {
     expect(eventUrl).toContain('.ics');
   });
 
-  // it('should list calendar events', async () => {
+  it('should list calendar events', async () => {
+    const events = await listEvents();
+    events.forEach((event) => {
+      const eventJson = icsToJson(event.data);
+      console.log('lol', eventJson, event.data);
+      expect(eventJson).toBeDefined();
+    });
+    expect(events.length).toBeGreaterThan(0);
+  });
+
+  it('should delete test event', async () => {
+    const event = await getEventByUrl(eventUrl);
+    await deleteEvent(event);
+    // Verify deletion by attempting to fetch the event again
+    const checkEvent = await getEventByUrl(eventUrl);
+    expect(checkEvent.data).toBeUndefined();
+  });
+
+  // it('should delete all events', async () => {
   //   const events = await listEvents();
-  //   events.forEach((event) => {
-  //     const eventJson = icsToJson(event.data);
-  //     expect(eventJson).toBeDefined();
-  //   });
-  //   expect(events.length).toBeGreaterThan(0);
+  //   for (const event of events) {
+  //     await deleteEvent(event);
+  //   }
+  //   const remainingEvents = await listEvents();
+  //   expect(remainingEvents.length).toBe(0);
   // });
-
-  // it('should delete test event', async () => {
-  //   const event = await getEventByUrl(eventUrl);
-  //   await deleteEvent(event);
-  //   // Verify deletion by attempting to fetch the event again
-  //   const checkEvent = await getEventByUrl(eventUrl);
-  //   expect(checkEvent.data).toBeUndefined();
-  // });
-
-  //   it('should delete all events', async () => {
-  //     const events = await listEvents();
-  //     for (const event of events) {
-  //       await deleteEvent(event);
-  //     }
-  //     const remainingEvents = await listEvents();
-  //     expect(remainingEvents.length).toBe(0);
-  //   });
 });

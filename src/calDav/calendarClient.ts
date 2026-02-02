@@ -44,36 +44,41 @@ const getPrimaryCalendar = async () => {
 };
 
 const createEvent = async (eventData: Omit<ICalInput, 'uid' | 'domain'>) => {
-  // TODO: use getPrimaryCalendar to get the client and calendar
   const { client, calendar } = await getPrimaryCalendar();
-  // generate the iCal string using generateICal
   const iCalString = generateICal(eventData);
-  // create the calendar object using client.createCalendarObject
   const response = await client.createCalendarObject({
     calendar,
     filename: `${Date.now()}.ics`,
     iCalString,
   });
-  // return the URL of the created event
   return response.url;
 };
 
 const getEventByUrl = async (eventUrl: string) => {
-  // TODO: use getPrimaryCalendar to get the client and calendar
-  // fetch the calendar object using client.fetchCalendarObjects with the eventUrl
-  // if no calendar object found, throw an error
-  // return the found calendar object
+  const { client, calendar } = await getPrimaryCalendar();
+  const calendarObjects = await client.fetchCalendarObjects({
+    calendar,
+    objectUrls: [eventUrl],
+  });
+  if (calendarObjects.length === 0) {
+    throw new Error('Event not found');
+  }
+  return calendarObjects[0];
 };
 
 const listEvents = async () => {
-  // TODO: use getPrimaryCalendar to get the client and calendar
-  // fetch all calendar objects using client.fetchCalendarObjects
-  // return the list of events, or an empty array if none found
+  const { client, calendar } = await getPrimaryCalendar();
+  const calendarObjects = await client.fetchCalendarObjects({
+    calendar,
+  });
+  return calendarObjects || [];
 };
 
 const deleteEvent = async (calObj: DAVObject) => {
-  // TODO: get client like in other functions
-  // delete the calendar object using client.deleteCalendarObject
+  const { client } = await getPrimaryCalendar();
+  await client.deleteCalendarObject({
+    calendarObject: calObj,
+  });
   // handle errors appropriately
 };
 
