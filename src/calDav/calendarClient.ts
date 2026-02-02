@@ -10,44 +10,75 @@ const CALDAV_PASSWORD = process.env.CALDAV_PASSWORD ?? 'password';
 let clientPromise: Promise<DAVClient> | null = null;
 
 const getAuthenticatedClient = () => {
-  // If a login is already in progress or finished, return that same promise
   if (clientPromise) return clientPromise;
 
-  // TODO: create clientPromise, it is an IIFE that creates
-  // and logs in the client and returns the client, on error it resets clientPromise to null
-  // see https://tsdav.vercel.app/docs/intro#basic-usage for reference
+  clientPromise = (async () => {
+    try {
+      const client = new DAVClient({
+        serverUrl: CALDAV_SERVER_URL,
+        credentials: {
+          username: CALDAV_USERNAME,
+          password: CALDAV_PASSWORD,
+        },
+        authMethod: 'Basic',
+        defaultAccountType: 'caldav',
+      });
+
+      await client.login();
+      return client;
+    } catch (error) {
+      clientPromise = null; // varmista, että epäonnistunut yritys nollataan
+      throw error;
+    }
+  })();
+  return clientPromise;
 };
 
 const getPrimaryCalendar = async () => {
-  // TODO: use getAuthenticatedClient to get the client
-  // fetch the calendars for the user
-  // if no calendars found, throw an error
-  // return the client and the first calendar found
+  const client = await getAuthenticatedClient();
+  const calendars = await client.fetchCalendars();
+  if (calendars.length === 0) {
+    throw new Error('No calendars found');
+  }
+  return { client, calendar: calendars[0] };
 };
 
 const createEvent = async (eventData: Omit<ICalInput, 'uid' | 'domain'>) => {
-  // TODO: use getPrimaryCalendar to get the client and calendar
-  // generate the iCal string using generateICal
-  // create the calendar object using client.createCalendarObject
-  // return the URL of the created event
+  const { client, calendar } = await getPrimaryCalendar();
+  const iCalString = generateICal(eventData);
+  const response = await client.createCalendarObject({
+    calendar,
+    filename: `${Date.now()}.ics`,
+    iCalString,
+  });
+  return response.url;
 };
 
 const getEventByUrl = async (eventUrl: string) => {
-  // TODO: use getPrimaryCalendar to get the client and calendar
-  // fetch the calendar object using client.fetchCalendarObjects with the eventUrl
-  // if no calendar object found, throw an error
-  // return the found calendar object
+  const { client, calendar } = await getPrimaryCalendar();
+  const calendarObjects = await client.fetchCalendarObjects({
+    calendar,
+    objectUrls: [eventUrl],
+  });
+  if (calendarObjects.length === 0) {
+    throw new Error('Event not found');
+  }
+  return calendarObjects[0];
 };
 
 const listEvents = async () => {
-  // TODO: use getPrimaryCalendar to get the client and calendar
-  // fetch all calendar objects using client.fetchCalendarObjects
-  // return the list of events, or an empty array if none found
+  const { client, calendar } = await getPrimaryCalendar();
+  const calendarObjects = await client.fetchCalendarObjects({
+    calendar,
+  });
+  return calendarObjects || [];
 };
 
 const deleteEvent = async (calObj: DAVObject) => {
-  // TODO: get client like in other functions
-  // delete the calendar object using client.deleteCalendarObject
+  const { client } = await getPrimaryCalendar();
+  await client.deleteCalendarObject({
+    calendarObject: calObj,
+  });
   // handle errors appropriately
 };
 

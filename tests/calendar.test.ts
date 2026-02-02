@@ -1,4 +1,5 @@
-import { icsToJson } from '@/utils/ics-to-json';
+import { icsToJson } from './../src/utils/ics-to-json';
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   deleteEvent,
   getAuthenticatedClient,
@@ -37,6 +38,7 @@ describe('CalDAV Client', () => {
     const events = await listEvents();
     events.forEach((event) => {
       const eventJson = icsToJson(event.data);
+      console.log('lol', eventJson, event.data);
       expect(eventJson).toBeDefined();
     });
     expect(events.length).toBeGreaterThan(0);
@@ -50,12 +52,12 @@ describe('CalDAV Client', () => {
     expect(checkEvent.data).toBeUndefined();
   });
 
-  //   it('should delete all events', async () => {
-  //     const events = await listEvents();
-  //     for (const event of events) {
-  //       await deleteEvent(event);
-  //     }
-  //     const remainingEvents = await listEvents();
-  //     expect(remainingEvents.length).toBe(0);
-  //   });
+  // it('should delete all events', async () => {
+  //   const events = await listEvents();
+  //   for (const event of events) {
+  //     await deleteEvent(event);
+  //   }
+  //   const remainingEvents = await listEvents();
+  //   expect(remainingEvents.length).toBe(0);
+  // });
 });

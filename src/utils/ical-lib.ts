@@ -48,8 +48,6 @@ const generateICal = (input: ICalInput): string => {
   const finalUid = uid || `${crypto.randomUUID()}@${domain}`;
   const now = toCalDav(new Date());
 
-  const timezone = 'Europe/Helsinki';
-
   const lines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
@@ -58,8 +56,8 @@ const generateICal = (input: ICalInput): string => {
     'BEGIN:VEVENT',
     `UID:${finalUid}`,
     `DTSTAMP:${now}`,
-    `DTSTART;TZID=${timezone}:${toCalDav(start)}`,
-    `DTEND;TZID=${timezone}:${toCalDav(end)}`,
+    `DTSTART:${toCalDav(start)}`,
+    `DTEND:${toCalDav(end)}`,
     `SUMMARY:${escapeText(title)}`,
   ];
 
