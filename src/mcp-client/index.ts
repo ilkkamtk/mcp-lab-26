@@ -51,7 +51,7 @@ interface ChatCompletionResponse {
 
 export async function callMcpClient(
   prompt: string,
-): Promise<{ answer: string; toolCalls: string[] }> {
+): Promise<{ answer: string; toolCalls: number }> {
   const transport = new StreamableHTTPClientTransport(
     new URL(process.env.MCP_SERVER_URL!),
   );
@@ -166,7 +166,7 @@ Do not perform calculations yourself; let the tools handle date/time logic. Afte
     const finalMessage = messages[messages.length - 1];
     const answer = finalMessage.content || '';
 
-    return { answer: answer.trim(), toolCalls };
+    return { answer: answer.trim(), toolCalls: toolCalls.length };
   } finally {
     await transport.close();
   }
