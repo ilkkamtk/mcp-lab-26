@@ -1,9 +1,8 @@
-import express, { Request, Response } from 'express';
+import express from 'express';
+import { postMcpClient } from '../controllers/mcpClientController';
 
 const router = express.Router();
 
-router.route('/').get((_req: Request, res: Response) => {
-  res.json({ message: 'MCP Client Endpoint in the future' });
-});
+router.route('/').post(postMcpClient);
 
 export default router;
