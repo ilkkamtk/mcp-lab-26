@@ -1,7 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { ErrorResponse } from '@/types/LocalTypes';
 import CustomError from './classes/CustomError';
-import fs from 'fs';
 import fetchData from './utils/fetchData';
 
 const notFound = (req: Request, res: Response, next: NextFunction) => {
@@ -34,8 +33,9 @@ const transcribeAudio = async (
   }
 
   try {
-    const buffer = fs.readFileSync(req.file.path);
-    const blob = new Blob([buffer], { type: req.file.mimetype });
+    const blob = new Blob([new Uint8Array(req.file.buffer)], {
+      type: req.file.mimetype,
+    });
     const form = new FormData();
     form.append('file', blob, req.file.originalname);
     form.append('model', 'whisper-1');
@@ -49,19 +49,10 @@ const transcribeAudio = async (
     );
     req.body.prompt = data.text;
 
-    // Clean up
-    fs.unlink(req.file.path, (err) => {
-      if (err) console.error('Failed to delete file:', err);
-    });
-
+    // No file cleanup needed for memory storage
     next();
   } catch (error) {
-    // Clean up on error
-    if (req.file && req.file.path) {
-      fs.unlink(req.file.path, (err) => {
-        if (err) console.error('Failed to delete file on error:', err);
-      });
-    }
+    // No cleanup needed for memory storage
     next(error);
   }
 };
