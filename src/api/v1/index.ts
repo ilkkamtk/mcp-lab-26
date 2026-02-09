@@ -12,6 +12,6 @@ router.get('/', (req: Request, res: Response) => {
 });
 
 router.use('/mcp', mcpServerRouter);
-router.use('/client/', mcpClientRouter);
+router.use('/client', mcpClientRouter);
 
 export default router;
