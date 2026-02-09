@@ -46,7 +46,6 @@ const getPrimaryCalendar = async () => {
 const createEvent = async (eventData: Omit<ICalInput, 'uid' | 'domain'>) => {
   const { client, calendar } = await getPrimaryCalendar();
   const iCalString = generateICal(eventData);
-  console.log('ical', iCalString);
   const response = await client.createCalendarObject({
     calendar,
     filename: `${Date.now()}.ics`,
@@ -75,6 +74,18 @@ const listEvents = async () => {
   return calendarObjects || [];
 };
 
+const listEventsByDateRange = async (startDate: Date, endDate: Date) => {
+  const { client, calendar } = await getPrimaryCalendar();
+  const calendarObjects = await client.fetchCalendarObjects({
+    calendar,
+    timeRange: {
+      start: startDate.toISOString(),
+      end: endDate.toISOString(),
+    },
+  });
+  return calendarObjects || [];
+};
+
 const deleteEvent = async (calObj: DAVObject) => {
   const { client } = await getPrimaryCalendar();
   await client.deleteCalendarObject({
@@ -89,5 +100,6 @@ export {
   getEventByUrl,
   createEvent,
   listEvents,
+  listEventsByDateRange,
   deleteEvent,
 };

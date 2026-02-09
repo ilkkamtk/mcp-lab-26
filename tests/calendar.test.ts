@@ -38,7 +38,6 @@ describe('CalDAV Client', () => {
     const events = await listEvents();
     events.forEach((event) => {
       const eventJson = icsToJson(event.data);
-      console.log('lol', eventJson, event.data);
       expect(eventJson).toBeDefined();
     });
     expect(events.length).toBeGreaterThan(0);

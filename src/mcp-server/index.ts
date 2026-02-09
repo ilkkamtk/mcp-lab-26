@@ -6,24 +6,32 @@ import {
 } from '@/calDav/calendarClient';
 import { icsToJson } from '@/utils/ics-to-json';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { toUtc } from '@/utils/ical-lib';
 
 // tool schemas
-const createEventInputSchema = z.object({
-  start: z.iso
-    .datetime()
-    .describe(
-      'Start date and time of the event as ISO 8601 datetime (YYYY-MM-DDTHH:MM:SSZ) in UTC',
-    ),
-  end: z.iso
-    .datetime()
-    .optional()
-    .describe(
-      'End date and time of the event as ISO 8601 datetime (YYYY-MM-DDTHH:MM:SSZ) in UTC. If not provided, defaults to one hour after start time',
-    ),
-  title: z.string().describe('Short title of the event'),
-  description: z.string().optional().describe('Optional detailed description'),
-  location: z.string().optional().describe('Optional location of the event'),
-});
+const createEventInputSchema = z
+  .object({
+    title: z.string().min(1),
+
+    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+
+    time: z
+      .string()
+      .regex(/^([01][0-9]|2[0-3]):[0-5][0-9]$/)
+      .describe('Local start time (HH:MM)'),
+
+    endTime: z
+      .string()
+      .regex(/^([01][0-9]|2[0-3]):[0-5][0-9]$/)
+      .optional()
+      .describe('Optional local end time (HH:MM)'),
+
+    timezone: z.string().min(1),
+
+    description: z.string().optional(),
+    location: z.string().optional(),
+  })
+  .strict();
 
 // input types
 type CreateEventInput = z.infer<typeof createEventInputSchema>;
@@ -42,21 +50,32 @@ mcpServer.registerTool(
     inputSchema: createEventInputSchema,
   },
   async (input: CreateEventInput) => {
-    const { start, end, title, description, location } = input;
-    const eventEnd = end
-      ? new Date(end)
-      : new Date(new Date(start).getTime() + 60 * 60 * 1000);
+    const { title, date, time, endTime, timezone, description, location } =
+      input;
+
     try {
+      const startUtc = toUtc(date, time, timezone);
+
+      const endUtc = endTime
+        ? toUtc(date, endTime, timezone)
+        : new Date(startUtc.getTime() + 60 * 60 * 1000); // default 1h
+
+      if (endUtc <= startUtc) {
+        throw new Error('Event end time must be after start time');
+      }
+
       const eventUrl = await createEvent({
-        start: new Date(start),
-        end: eventEnd,
+        start: startUtc,
+        end: endUtc,
         title,
         description,
         location,
       });
+
       const newEvent = await getEventByUrl(eventUrl);
       const newEventObject = icsToJson(newEvent.data);
-      if (!newEventObject[0].startDate || !newEventObject[0].endDate) {
+
+      if (!newEventObject[0]?.startDate || !newEventObject[0]?.endDate) {
         throw new Error('Event not created');
       }
 
@@ -69,7 +88,6 @@ mcpServer.registerTool(
         ],
       };
     } catch (error) {
-      console.error('Error creating event:', error);
       return {
         content: [
           {
@@ -94,8 +112,6 @@ mcpServer.registerTool(
     try {
       const rawEvents = await listEvents();
       const parsedEvents = rawEvents.map((event) => icsToJson(event.data));
-
-      console.log('Eventit:', parsedEvents);
 
       return {
         content: [

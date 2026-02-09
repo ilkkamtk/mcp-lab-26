@@ -75,4 +75,16 @@ const generateICal = (input: ICalInput): string => {
   return lines.join('\r\n');
 };
 
-export { generateICal };
+function toUtc(date: string, time: string, timezone: string): Date {
+  const dt = DateTime.fromISO(`${date}T${time}`, {
+    zone: timezone,
+  });
+
+  if (!dt.isValid) {
+    throw new Error('Invalid date/time/timezone');
+  }
+
+  return dt.toUTC().toJSDate();
+}
+
+export { generateICal, toUtc };
