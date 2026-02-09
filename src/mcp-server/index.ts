@@ -38,8 +38,16 @@ const createEventInputSchema = z
 type CreateEventInput = z.infer<typeof createEventInputSchema>;
 
 const listEventsByRangeInputSchema = z.object({
-  start: z.string().describe('Start date and time as ISO 8601 string (e.g., 2026-02-10T00:00:00Z)'),
-  end: z.string().describe('End date and time as ISO 8601 string (e.g., 2026-02-10T23:59:59Z)'),
+  start: z
+    .string()
+    .describe(
+      'Start date and time as ISO 8601 string (e.g., 2026-02-10T00:00:00Z)',
+    ),
+  end: z
+    .string()
+    .describe(
+      'End date and time as ISO 8601 string (e.g., 2026-02-10T23:59:59Z)',
+    ),
 });
 
 type ListEventsByRangeInput = z.infer<typeof listEventsByRangeInputSchema>;
@@ -154,7 +162,11 @@ mcpServer.registerTool(
   async (input: ListEventsByRangeInput) => {
     try {
       const { start, end } = input;
-      const rawEvents = await listEventsByDateRange(new Date(start), new Date(end));
+      const rawEvents = await listEventsByDateRange(
+        new Date(start),
+        new Date(end),
+      );
+      console.log(rawEvents);
       const parsedEvents = rawEvents.map((event) => icsToJson(event.data));
 
       return {
