@@ -3,6 +3,7 @@ import {
   createEvent,
   getEventByUrl,
   listEvents,
+  listEventsByDateRange,
 } from '@/calDav/calendarClient';
 import { icsToJson } from '@/utils/ics-to-json';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
@@ -35,6 +36,13 @@ const createEventInputSchema = z
 
 // input types
 type CreateEventInput = z.infer<typeof createEventInputSchema>;
+
+const listEventsByRangeInputSchema = z.object({
+  start: z.string().describe('Start date and time as ISO 8601 string (e.g., 2026-02-10T00:00:00Z)'),
+  end: z.string().describe('End date and time as ISO 8601 string (e.g., 2026-02-10T23:59:59Z)'),
+});
+
+type ListEventsByRangeInput = z.infer<typeof listEventsByRangeInputSchema>;
 
 const mcpServer = new McpServer({
   name: 'calendar-server',
@@ -128,6 +136,42 @@ mcpServer.registerTool(
           {
             type: 'text',
             text: `Failed to list events: ${(error as Error).message}`,
+          },
+        ],
+      };
+    }
+  },
+);
+
+mcpServer.registerTool(
+  'listEventsByRange',
+  {
+    title: 'List Calendar Events by Date Range',
+    description:
+      'Lists events from the calendar within a specific date range. Provide start and end dates as ISO 8601 strings. Returns parsed event data including title, start/end times, location, and description as JSON.',
+    inputSchema: listEventsByRangeInputSchema,
+  },
+  async (input: ListEventsByRangeInput) => {
+    try {
+      const { start, end } = input;
+      const rawEvents = await listEventsByDateRange(new Date(start), new Date(end));
+      const parsedEvents = rawEvents.map((event) => icsToJson(event.data));
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `Events in range retrieved successfully: ${JSON.stringify(parsedEvents)}`,
+          },
+        ],
+      };
+    } catch (error) {
+      console.error('Error listing events by range:', error);
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `Failed to list events by range: ${(error as Error).message}`,
           },
         ],
       };
